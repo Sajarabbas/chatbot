@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Chatbot</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="script.js" defer></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+</head>
+<body class="light-mode">
+  <div class="chatbot-container">
+    <header class="chatbot-header">
+      <h2>AI Chatbot</h2>
+      <div class="header-controls">
+        <button class="theme-toggle">
+          <span class="material-symbols-rounded">light_mode</span>
+          <span class="material-symbols-rounded">dark_mode</span>
+        </button>
+        <button class="minimize-btn">
+          <span class="material-symbols-rounded">minimize</span>
+        </button>
+      </div>
+    </header>
+    
+    <ul class="chatbox">
+      <li class="chat incoming">
+        <span class="material-symbols-rounded">smart_toy</span>
+        <p>Hello! I'm your Mistral AI assistant. How can I help you today?</p>
+      </li>
+    </ul>
+
+    <div class="chat-input">
+      <textarea placeholder="Ask me anything..." spellcheck="false" required></textarea>
+      <button id="send-btn" class="material-symbols-rounded">send</button>
+    </div>
+
+    <!-- Credits Footer (Discreet but visible) -->
+    <footer class="credits">
+      <p>Project by: Sajar Abbas, Aman Ali, Nadir Sheikh, Mohsin Siddiqui, Rehan Imtiyaz</p>
+    </footer>
+  </div>
+</body>
+</html>
