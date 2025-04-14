@@ -4,7 +4,7 @@ const chatInput = document.querySelector('.chat-input textarea');
 const sendBtn = document.querySelector('#send-btn');
 
 // API Configuration - IMPORTANT: Move this to Netlify Environment Variables for production
-const API_KEY = "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";
+const API_KEY = "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";
 const API_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 let userMessage;
