@@ -49,7 +49,7 @@ const generateResponse = async (chatElement) => {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${API_KEY}`,
-      'HTTP-Referer': window.location.href,
+      'HTTP-Referer': `https://team5ai.netlify.app`,
       'X-Title': 'Mistral AI Chatbot'
     },
     body: JSON.stringify({
