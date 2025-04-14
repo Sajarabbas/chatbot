@@ -1,35 +1,27 @@
-// DOM Elements
-const chatbox = document.querySelector('.chatbox');
-const chatInput = document.querySelector('.chat-input textarea');
-const sendBtn = document.querySelector('#send-btn');
-
-// API Configuration - IMPORTANT: Move this to Netlify Environment Variables for production
-const API_KEY = "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";
-const API_URL = "https://openrouter.ai/api/v1/chat/completions";
+const chatInput = document.querySelector(".chat-input textarea");
+const sendBtn = document.querySelector("#send-btn");
+const chatbox = document.querySelector(".chatbox");
+const themeToggle = document.querySelector(".theme-toggle");
 
 let userMessage;
-const inputInitHeight = chatInput.scrollHeight;
+const API_KEY = "8NIITVxcdZeTY6VjSf0tocDwxokVQSWX"; // Replace with your actual Mistral AI key
+const API_URL = "https://api.mistral.ai/v1/chat/completions";
 
-// Initialize theme from localStorage
-const initTheme = () => {
-  const savedTheme = localStorage.getItem('theme') || 'light';
-  document.body.className = `${savedTheme}-mode`;
-};
+// Set default theme
+document.body.setAttribute("data-theme", "light");
 
-// Toggle theme
-const toggleTheme = () => {
-  document.body.classList.toggle('dark-mode');
-  document.body.classList.toggle('light-mode');
-  const currentTheme = document.body.classList.contains('dark-mode') ? 'dark' : 'light';
-  localStorage.setItem('theme', currentTheme);
-};
+// Theme toggle
+themeToggle.addEventListener("click", () => {
+  const currentTheme = document.body.getAttribute("data-theme");
+  const newTheme = currentTheme === "light" ? "dark" : "light";
+  document.body.setAttribute("data-theme", newTheme);
+});
 
-// Create chat element
 const createChatLi = (message, className) => {
-  const chatLi = document.createElement('li');
-  chatLi.classList.add('chat', className);
+  const chatLi = document.createElement("li");
+  chatLi.classList.add("chat", className);
   
-  let chatContent = className === 'outgoing' 
+  let chatContent = className === "outgoing" 
     ? `<p>${message}</p>`
     : `<span class="material-symbols-rounded">smart_toy</span><p>${message}</p>`;
   
@@ -37,91 +29,70 @@ const createChatLi = (message, className) => {
   return chatLi;
 };
 
-// Generate response from Mistral AI
-const generateResponse = async (chatElement) => {
-  const messageElement = chatElement.querySelector('p');
-  messageElement.innerHTML = '<span class="typing-indicator"><span></span><span></span><span></span></span>';
-
-  try {
-    const response = await fetch(API_URL, {
-      method: 'POST',
+const generateResponse = (incomingChatLi) => {
+    const messageElement = incomingChatLi.querySelector("p");
+  
+    messageElement.innerHTML = '<div class="typing-indicator"><span></span><span></span><span></span></div>';
+  
+    const requestOptions = {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${API_KEY}`,
-        'HTTP-Referer': window.location.href,
-        'X-Title': 'Mistral AI Chatbot'
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${API_KEY}` // Only authorization header needed
       },
       body: JSON.stringify({
-        model: "mistralai/mistral-7b-instruct",
+        model: "mistral-tiny", // Can be "mistral-tiny", "mistral-small", or "mistral-medium"
         messages: [
-          { 
-            role: "system", 
-            content: "You are a helpful AI assistant. Keep responses concise (20-40 words)." 
-          },
+          { role: "system", content: "You are a helpful assistant." },
           { role: "user", content: userMessage }
         ],
-        temperature: 0.7,
-        max_tokens: 150
+        temperature: 0.7
       })
-    });
+    };
+  
+    fetch(API_URL, requestOptions)
+      .then(res => {
+        if (!res.ok) throw new Error(`API error: ${res.status}`);
+        return res.json();
+      })
+      .then(data => {
+        if (data.choices?.[0]?.message?.content) {
+          messageElement.textContent = data.choices[0].message.content.trim();
+        } else {
+          throw new Error("Invalid response format");
+        }
+      })
+      .catch(error => {
+        console.error("API Error:", error);
+        messageElement.textContent = `Error: ${error.message}`;
+      })
+      .finally(() => chatbox.scrollTo(0, chatbox.scrollHeight));
+  };
 
-    if (!response.ok) {
-      throw new Error(`API Error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    const aiResponse = data.choices[0]?.message?.content || "No response from AI";
-    
-    // Type out response character by character
-    messageElement.textContent = '';
-    for (let i = 0; i < aiResponse.length; i++) {
-      await new Promise(resolve => setTimeout(resolve, 20));
-      messageElement.textContent += aiResponse[i];
-      chatbox.scrollTo(0, chatbox.scrollHeight);
-    }
-
-  } catch (error) {
-    console.error('API Error:', error);
-    messageElement.classList.add('error');
-    messageElement.textContent = "Error: Failed to get response. Check console for details.";
-  }
-};
-
-// Handle chat
 const handleChat = () => {
   userMessage = chatInput.value.trim();
   if (!userMessage) return;
 
-  chatInput.value = '';
-  chatInput.style.height = `${inputInitHeight}px`;
+  chatInput.value = "";
+  chatInput.style.height = "auto";
 
   // Append user message
-  chatbox.appendChild(createChatLi(userMessage, 'outgoing'));
+  chatbox.appendChild(createChatLi(userMessage, "outgoing"));
   chatbox.scrollTo(0, chatbox.scrollHeight);
 
   setTimeout(() => {
-    const incomingChatLi = createChatLi('Thinking...', 'incoming');
+    // Show "Thinking..." message while waiting
+    const incomingChatLi = createChatLi("Thinking...", "incoming");
     chatbox.appendChild(incomingChatLi);
     chatbox.scrollTo(0, chatbox.scrollHeight);
     generateResponse(incomingChatLi);
   }, 600);
 };
 
-// Event Listeners
-chatInput.addEventListener('input', () => {
-  chatInput.style.height = 'auto';
-  chatInput.style.height = `${chatInput.scrollHeight}px`;
-});
-
-chatInput.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' && !e.shiftKey) {
+sendBtn.addEventListener("click", handleChat);
+chatInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) {
     e.preventDefault();
     handleChat();
   }
 });
-
-sendBtn.addEventListener('click', handleChat);
-document.querySelector('.theme-toggle').addEventListener('click', toggleTheme);
-
-// Initialize
-initTheme();
