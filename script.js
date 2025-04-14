@@ -2,11 +2,9 @@
 const chatbox = document.querySelector('.chatbox');
 const chatInput = document.querySelector('.chat-input textarea');
 const sendBtn = document.querySelector('#send-btn');
-const themeToggle = document.querySelector('.theme-toggle');
-const minimizeBtn = document.querySelector('.minimize-btn');
 
-// API Configuration
-const API_KEY = "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"; 
+// API Configuration - IMPORTANT: Move this to Netlify Environment Variables for production
+const API_KEY = "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";
 const API_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 let userMessage;
@@ -44,65 +42,48 @@ const generateResponse = async (chatElement) => {
   const messageElement = chatElement.querySelector('p');
   messageElement.innerHTML = '<span class="typing-indicator"><span></span><span></span><span></span></span>';
 
-  const requestOptions = {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${API_KEY}`,
-      'HTTP-Referer': `https://team5ai.netlify.app`,
-      'X-Title': 'Mistral AI Chatbot'
-    },
-    body: JSON.stringify({
-      model: "mistralai/mistral-7b-instruct",
-      messages: [
-        { 
-          role: "system", 
-          content: "You are a helpful AI assistant. Provide concise responses (20-40 words). Be friendly and professional." 
-        },
-        { role: "user", content: userMessage }
-      ],
-      temperature: 0.7,
-      max_tokens: 150,
-      stream: true
-    })
-  };
-
   try {
-    const response = await fetch(API_URL, requestOptions);
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let fullResponse = '';
-    messageElement.innerHTML = '';
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${API_KEY}`,
+        'HTTP-Referer': window.location.href,
+        'X-Title': 'Mistral AI Chatbot'
+      },
+      body: JSON.stringify({
+        model: "mistralai/mistral-7b-instruct",
+        messages: [
+          { 
+            role: "system", 
+            content: "You are a helpful AI assistant. Keep responses concise (20-40 words)." 
+          },
+          { role: "user", content: userMessage }
+        ],
+        temperature: 0.7,
+        max_tokens: 150
+      })
+    });
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      const chunk = decoder.decode(value);
-      const lines = chunk.split('\n').filter(line => line.trim() !== '');
-
-      for (const line of lines) {
-        if (line.startsWith('data: ')) {
-          const data = line.replace('data: ', '');
-          if (data === '[DONE]') continue;
-
-          try {
-            const parsed = JSON.parse(data);
-            if (parsed.choices[0].delta?.content) {
-              fullResponse += parsed.choices[0].delta.content;
-              messageElement.textContent = fullResponse;
-              chatbox.scrollTo(0, chatbox.scrollHeight);
-            }
-          } catch (err) {
-            console.error('Error parsing chunk:', err);
-          }
-        }
-      }
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status}`);
     }
+
+    const data = await response.json();
+    const aiResponse = data.choices[0]?.message?.content || "No response from AI";
+    
+    // Type out response character by character
+    messageElement.textContent = '';
+    for (let i = 0; i < aiResponse.length; i++) {
+      await new Promise(resolve => setTimeout(resolve, 20));
+      messageElement.textContent += aiResponse[i];
+      chatbox.scrollTo(0, chatbox.scrollHeight);
+    }
+
   } catch (error) {
-    console.error('Error:', error);
+    console.error('API Error:', error);
     messageElement.classList.add('error');
-    messageElement.textContent = "Oops! Something went wrong. Please try again.";
+    messageElement.textContent = "Error: Failed to get response. Check console for details.";
   }
 };
 
@@ -119,7 +100,6 @@ const handleChat = () => {
   chatbox.scrollTo(0, chatbox.scrollHeight);
 
   setTimeout(() => {
-    // Display "Thinking..." message while waiting for response
     const incomingChatLi = createChatLi('Thinking...', 'incoming');
     chatbox.appendChild(incomingChatLi);
     chatbox.scrollTo(0, chatbox.scrollHeight);
@@ -141,12 +121,7 @@ chatInput.addEventListener('keydown', (e) => {
 });
 
 sendBtn.addEventListener('click', handleChat);
-themeToggle.addEventListener('click', toggleTheme);
-
-// Minimize functionality (optional)
-minimizeBtn.addEventListener('click', () => {
-  document.querySelector('.chatbot-container').classList.toggle('minimized');
-});
+document.querySelector('.theme-toggle').addEventListener('click', toggleTheme);
 
 // Initialize
 initTheme();
