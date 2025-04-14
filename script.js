@@ -43,7 +43,7 @@ const generateResponse = (incomingChatLi) => {
       body: JSON.stringify({
         model: "mistral-tiny", // Can be "mistral-tiny", "mistral-small", or "mistral-medium"
         messages: [
-          { role: "system", content: "You are a helpful assistant." },
+          { role: "system", content: "You are a helpful chatbot that give replies in 20-25 words." },
           { role: "user", content: userMessage }
         ],
         temperature: 0.7
