@@ -187,3 +187,26 @@
   .typing-indicator span:nth-child(3) {
     animation-delay: 0.4s;
   }
+
+.team-credits {
+    text-align: center;
+    padding: 8px 0;
+    font-size: 0.7rem;
+    color: #666;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    background: rgba(255, 255, 255, 0.5);
+  }
+  
+  [data-theme="dark"] .team-credits {
+    color: #aaa;
+    border-top-color: rgba(255, 255, 255, 0.1);
+    background: rgba(30, 30, 30, 0.3);
+  }
+  
+  /* Responsive adjustment */
+  @media (max-width: 600px) {
+    .team-credits {
+      font-size: 0.6rem;
+      padding: 6px 0;
+    }  
+  }
